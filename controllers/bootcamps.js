@@ -8,44 +8,7 @@ const Bootcamp = require('../models/Bootcamp');
 // @route   GET /api/v1/bootcamps
 // @access  Public
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
-	let query;
-
-	// Copy req.query
-	const reqQuery = { ...req.query };
-
-	// Fields to exclude
-	const removeFields = [ 'select', 'sort' ];
-
-	// Loop over removeFields and delete them from reqQuery
-	removeFields.forEach((param) => delete reqQuery[param]);
-
-	// Create query string
-	let queryStr = JSON.stringify(reqQuery);
-
-	// Create operators ($gt, $gte, etc)
-	queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, (match) => `$${match}`);
-
-	// Finding resource
-	query = Bootcamp.find(JSON.parse(queryStr)).populate('courses');
-
-	// Select Fields
-	if (req.query.select) {
-		const fields = req.query.select.split(',').join(' ');
-		query = query.select(fields);
-	}
-
-	// Sort
-	if (req.query.sort) {
-		const sortBy = req.query.sort.split(',').join(' ');
-		query = query.sort(sortBy);
-	} else {
-		query = query.sort('-createdAt');
-	}
-
-	// Executing query
-	const bootcamps = await query;
-
-	res.status(200).json({ success: true, count: bootcamps.length, data: bootcamps });
+	res.status(200).json(res.advancedResults);
 });
 
 // @desc    Get single bootcamp
@@ -66,12 +29,14 @@ exports.getBootcamp = asyncHandler(async (req, res, next) => {
 // @access  Private
 exports.createBootcamp = asyncHandler(async (req, res, next) => {
 	const bootcamp = await Bootcamp.create(req.body);
+		res.status(201).json({
+			success: true,
+			data: bootcamp
+			});
+		}
+	);
 
-	res.status(201).json({
-		success: true,
-		data: bootcamp
-	});
-});
+// =========================================================================
 
 // @desc    Update bootcamp
 // @route   PUT /api/v1/bootcamps/:id
